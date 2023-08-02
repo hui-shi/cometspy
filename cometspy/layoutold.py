@@ -125,8 +125,8 @@ class layout:
         self.__region_flag = False
         self.__ext_rxns_flag = False
         self.__periodic_media_flag = False
-        self.__chemotaxis_coeff_flag = False #H. Shi Jan 2023
-        self.__chemotaxis_param_flag = False #H. Shi Jan 2023
+        self.__chemotaxis_coeff_flag = False #HS
+        self.__chemotaxis_param_flag = False #HS
 
 
 
@@ -633,7 +633,7 @@ class layout:
                 
             else:
                 #self.chemotaxis = pd.DataFrame(columns =  ['model', 'media', 'coeff', 'n_params'])
-        #H. Shi: model, media, coeff, nutrient params
+        #HS: model, media, coeff, nutrient params
                 self.chemotaxis['model'] = [int(x) for x in g_ctx[0::4]] #first element then every fourth element?
                 self.chemotaxis['media'] = [int(x) for x in g_ctx[1::4]]
                 self.chemotaxis['coeff'] = [float(x) for x in g_ctx[2::4]]
@@ -666,7 +666,7 @@ class layout:
                 
             else:
                 #self.chemotaxis = pd.DataFrame(columns =  ['model', 'media', 'coeff', 'n_params'])
-        #H. Shi: model, media, coeff, nutrient params
+        #HS: model, media, coeff, nutrient params
                 #self.chemotaxis['model'] = [int(x) for x in g_ctx[0::4]] #first element then every fourth element?
                 #self.chemotaxis['media'] = [int(x) for x in g_ctx[1::4]]
                 #self.chemotaxis['coeff'] = [float(x) for x in g_ctx[2::4]]
@@ -882,7 +882,7 @@ class layout:
 
 
         """
-        if met in set(self.media['metabolite']):
+        if met in self.media['metabolite']:
             self.media.loc[self.media['metabolite'] == met,
                            'init_amount'] = amount
             if static:
@@ -900,11 +900,12 @@ class layout:
             newrow = pd.DataFrame([newrow], columns=newrow.keys())
             self.media = pd.concat([self.media,
                                     newrow],
-                                   axis=0, sort=False, ignore_index = True)
+                                   axis=0, sort=False)
             print('Warning: The added metabolite (' + met + ') is not' +
                   'able to be taken up by any of the current models')
 
-    def set_chemotaxis(self, model: float, met : str, coeff: float, n_param: float):
+
+    def set_chemotaxis(self, model: int, met : str, coeff: float, n_param: float):
         """
         model_media_chemotaxis_coeffs
         0 68 0.001
@@ -918,8 +919,6 @@ class layout:
 
         Parameters
         ----------
-        model: int
-            index of model to be used
         met : str
             name of the metabolite
         coeff : float
@@ -928,7 +927,7 @@ class layout:
             ak uptake nutrient parameter in Michaelis Menten
 
         self.chemotaxis = pd.DataFrame(columns =  ['model', 'media', 'coeff', 'n_params'])
-        #H. Shi: model, media, coeff, nutrient params
+        #HS: model, media, coeff, nutrient params
         Examples
         --------
         
@@ -937,32 +936,14 @@ class layout:
 
         """
         #find index value of media and if not, add it it media
-        #print(self.media)
         self.__chemotaxis_coeff_flag = True;
         self.__chemotaxis_param_flag = True;
         if met in set(self.media['metabolite']):
-            #print("Here in set.chemotaxis()")
-            #print(met)
+            
             #met_index = self.media.loc[self.media['metabolite'] == met]
             #met_index = self.media[['metabolite'] == met].index.values
             #met_index = self.media.index[self.media['metabolite'] == met]
-            #met_index = self.media.loc[(self.media['metabolite'] == met)]
-            #met_index = self.media.iloc[(self.media['metabolite'] == met), 0]
-            #self.media.index.name
-            #print(self.media[(self.media['metabolite'] == met)])
-            #met_indeces = self.media.index[self.media['metabolite'].equals(met)].tolist()
-            #met_indeces = list(map(int, met_indeces))
-            #met_index = met_indeces[0]
-            #print("Here")
-            #print(met_index)
-            #print(type(met_index))
-            #met_index = self.media.index[self.media['metabolite'].equals(met)]
-            #print(str(met_index) + "1")
-            #print(self.media)
-            #print(df[df[‘Name’]==’Donna’].index.values)
-            indices=self.media[self.media['metabolite'] == met].index.values
-            #print(indeces[0])
-            met_index = indices[0]
+            met_index = self.media.loc[(self.media['metabolite'] == met)]
         else:
             '''
             self.default_diff_c = 5.0e-6
@@ -980,29 +961,16 @@ class layout:
             self.media = pd.concat([self.media,
                                     newrow],
                                    axis=0, sort=False)
-            #print(self.chemotaxis)
             print('Warning: The added metabolite (' + met + ') is not' +
-                  ' uptaken up by any of the current models')
-            #met_index = self.media.loc[self.media['metabolite'] == met]
-            
-            #met_indeces = self.media.index[self.media['metabolite'].equals(met)].tolist()
-            #met_indeces = list(map(int, met_indeces))
-            #met_index = met_indeces[0]
-            #met_index = self.media.index[self.media['metabolite'].equals(met)]
-            #print(str(met_index) + "2")
-            indices=self.media[self.media['metabolite'] == met].index.values
-            met_index = indices[0]
+                  'able to be taken up by any of the current models')
+            met_index = self.media.loc[self.media['metabolite'] == met]
         newrow = {'model': model,
                   'media': met_index,
                   'coeff': coeff,
                   'n_params':n_param
         }
         newrow = pd.DataFrame([newrow], columns=newrow.keys())
-        self.chemotaxis = pd.concat([self.chemotaxis, newrow], axis=0, sort=False, ignore_index=True)
-        self.chemotaxis['model'] = self.chemotaxis['model'].astype(int)
-        self.chemotaxis['media'] = self.chemotaxis['media'].astype(int)
-        #print(self.chemotaxis)
-        #print(self.chemotaxis.dtypes)
+        self.chemotaxis = pd.concat([self.chemotaxis, newrow], axis=0, sort=False)
 
     def set_specific_metabolite_at_location(self, met : str, 
                                             location : tuple, 
@@ -1224,7 +1192,7 @@ class layout:
         self.__write_models_and_world_grid_chunk(lyt)
         self.__write_media_chunk(lyt)
         self.__write_diffusion_chunk(lyt)
-        self.__write_chemotaxis_chunk(lyt) #H. Shi Jan 2023
+        self.__write_chemotaxis_chunk(lyt) #HS Jan 2023
         self.__write_local_media_chunk(lyt)
         self.__write_refresh_chunk(lyt)
         self.__write_static_chunk(lyt)
@@ -1339,28 +1307,22 @@ class layout:
             lyt.write(r'    //' + '\n')
 
     def __write_chemotaxis_chunk(self, lyt):
-        #H. Shi Jan 2023
+        #HS Jan 2023
         """ used by write_layout to write the chemotaxis
          to the open lyt file """
         print("Here")
-        overall = ""
         if self.__chemotaxis_coeff_flag:
-            overall = overall + '    model_media_chemotaxis_coeffs\n'
             lyt.write('    model_media_chemotaxis_coeffs\n')
             for i in range(0, len(self.chemotaxis)):
-                #print(self.chemotaxis)
-                lyt.write('      ' + str(self.chemotaxis.model[i]) + ' ' + str(self.chemotaxis.media[i]) + ' ' + str(self.chemotaxis.coeff[i]) + '\n')
-                #overall = overall + '      ' + str(self.chemotaxis.model[i]) + ' ' + str(self.chemotaxis.media[i]) + ' ' + str(self.chemotaxis.coeff[i]) + '\n'
+                lyt.write('      ' + str(self.chemotaxis.model[i]) + ' ' + str(self.chemotaxis.media[i]) 
+                + ' ' + str(self.chemotaxis.coeff[i]) + '\n')
             lyt.write(r'    //' + '\n')
-            overall = overall + r'    //' + '\n'
         if self.__chemotaxis_param_flag:
             lyt.write('    model_media_nutrient_params\n')
-            overall = overall + '    model_media_nutrient_params\n'
             for i in range(0, len(self.chemotaxis)):
-                lyt.write('      ' + str(self.chemotaxis.model[i]) + ' ' + str(self.chemotaxis.media[i]) + ' ' + str(self.chemotaxis.n_params[i])+ '\n')
-                #overall = overall + '      ' + str(self.chemotaxis.model[i]) + ' ' + str(self.chemotaxis.media[i]) + ' ' + str(self.chemotaxis.n_params[i])+ '\n'
+                lyt.write('      ' + str(self.chemotaxis.model[i]) + ' ' + str(self.chemotaxis.media[i]) 
+                + ' ' + str(self.chemotaxis.n_params[i])+ '\n')
             lyt.write(r'    //' + '\n')
-            overall = overall + r'    //' + '\n'
 
     def __write_barrier_chunk(self, lyt):
         """ used by write_layout to write the barrier section to the open lyt file """
